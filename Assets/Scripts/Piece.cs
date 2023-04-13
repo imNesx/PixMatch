@@ -34,11 +34,11 @@ public class Piece : MonoBehaviour
 
     public void Move(int desX, int desY)
     {
-        transform.DOMove(new Vector3(desX, desY, -5f), 0.25f).SetEase(Ease.InOutCubic).onComplete = () =>
+        transform.DOMove(new Vector3(desX, desY, -5f), 0.25f).SetEase(Ease.InOutCubic).OnComplete(() =>
         {
             x = desX;
             y = desY;
-        };
+        });
     }
 
     [ContextMenu("Test Move")]
