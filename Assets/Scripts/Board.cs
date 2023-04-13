@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class Board : MonoBehaviour
 {
+    public float timeBetweenPieces = 0.05f;
 
     public int width;
     public int height;
@@ -33,10 +34,10 @@ public class Board : MonoBehaviour
 
         SetupBoard();
         PositionCamera();
-        SetupPieces();
+        StartCoroutine(SetupPieces());
     }
 
-    private void SetupPieces()
+    private IEnumerator SetupPieces()
     {
         int maxIterations = 50;
         int currentIteration = 0;
@@ -44,20 +45,25 @@ public class Board : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                currentIteration = 0;
-                var newPiece = CreatePieceAt(x, y);
-                while (HasPreviousMatches(x, y))
+                yield return new WaitForSeconds(timeBetweenPieces);
+                if (Pieces[x, y] == null)
                 {
-                    ClearPieceAt(x, y);
-                    newPiece = CreatePieceAt(x, y);
-                    currentIteration++;
-                    if (currentIteration > maxIterations)
+                    currentIteration = 0;
+                    var newPiece = CreatePieceAt(x, y);
+                    while (HasPreviousMatches(x, y))
                     {
-                        break;
+                        ClearPieceAt(x, y);
+                        newPiece = CreatePieceAt(x, y);
+                        currentIteration++;
+                        if (currentIteration > maxIterations)
+                        {
+                            break;
+                        }
                     }
-                }
+                } 
             }
         }
+        yield return null;
     }
 
     private void ClearPieceAt(int x, int y)
@@ -107,24 +113,34 @@ public class Board : MonoBehaviour
 
     public void TileDown(Tile tile_)
     {
-        startTile = tile_;
+        if (!swappingPieces)
+        {
+            startTile = tile_;
+        }
     }
 
     public void TileOver(Tile tile_)
     {
-        endTile = tile_;
+        if (!swappingPieces)
+        {
+            endTile = tile_;
+        }
     }
 
     public void TileUp(Tile tile_)
     {
-        if (startTile != null && endTile != null && IsCloseTo(startTile, endTile))
+        if (!swappingPieces)
         {
-            StartCoroutine(SwapTiles());
+            if (startTile != null && endTile != null && IsCloseTo(startTile, endTile))
+            {
+                StartCoroutine(SwapTiles());
+            }
         }
     }
 
     IEnumerator SwapTiles()
     {
+        swappingPieces = true;
         var StarPiece = Pieces[startTile.x, startTile.y];
         var EndPiece = Pieces[endTile.x, endTile.y];
 
@@ -170,8 +186,40 @@ public class Board : MonoBehaviour
         });
         List<int> columns = GetColumns(piecesToClear);
         List<Piece> collapsedPieces = collapseColumns(columns, 0.3f);
+        FindMatchsRecursively(collapsedPieces);
     }
 
+    private void FindMatchsRecursively(List<Piece> collapsedPieces)
+    {
+        StartCoroutine(FindMatchsRecursivelyCoroutine(collapsedPieces));
+    }
+
+    IEnumerator FindMatchsRecursivelyCoroutine(List<Piece> collapsedPieces)
+    {
+        yield return new WaitForSeconds(1f);
+        List<Piece> newMatches = new List<Piece>();
+        collapsedPieces.ForEach(piece =>
+        {
+            var matches = GetMatchByPiece(piece.x, piece.y, 3);
+            if(matches != null)
+            {
+                newMatches = newMatches.Union(matches).ToList();
+                ClearPieces(matches);
+            }
+        });
+        if(newMatches.Count > 0)
+        {
+            var newCollapsedPieces = collapseColumns(GetColumns(newMatches), 0.3f);
+            FindMatchsRecursively(newCollapsedPieces);
+        }
+        else
+        {
+            yield return new WaitForSeconds(0.1f);
+            StartCoroutine(SetupPieces());
+            swappingPieces = false;
+        }
+        yield return null;
+    }
 
     private List<int> GetColumns(List<Piece> piecesToClear)
     {
