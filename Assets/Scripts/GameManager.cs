@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
     public GameState gameState;
     public int Points = 0;
     public UnityEvent onPointsUpdated;
+    public UnityEvent<GameState> onGameStateUpdated;
 
     private void Awake()
     {
@@ -41,6 +42,7 @@ public class GameManager : MonoBehaviour
             if (currentTimeToMatch > timeToMatch)
             {
                 gameState = GameState.GameOver;
+                onGameStateUpdated?.Invoke(gameState);
             }
         }
     }
