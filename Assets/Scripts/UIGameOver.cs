@@ -14,12 +14,12 @@ public class UIGameOver : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        GameManager.Instance.onGameStateUpdated.AddListener(GameStateUpdated);
+        GameManager.Instance.OnGameStateUpdated.AddListener(GameStateUpdated);
     }
 
     private void OnDestroy()
     {
-        GameManager.Instance.onGameStateUpdated.RemoveListener(GameStateUpdated);
+        GameManager.Instance.OnGameStateUpdated.RemoveListener(GameStateUpdated);
     }
 
     private void GameStateUpdated(GameManager.GameState newState)

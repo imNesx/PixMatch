@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using System;
 
 public class UIPoints : MonoBehaviour
 {
@@ -13,6 +14,22 @@ public class UIPoints : MonoBehaviour
     void Start()
     {
         GameManager.Instance.onPointsUpdated.AddListener(UpdatePoints);
+        GameManager.Instance.OnGameStateUpdated.AddListener(GameStatedUpdated);
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.Instance.onPointsUpdated.RemoveListener(UpdatePoints);
+        GameManager.Instance.OnGameStateUpdated.RemoveListener(GameStatedUpdated);
+    }
+
+    private void GameStatedUpdated(GameManager.GameState newState)
+    {
+        if(newState == GameManager.GameState.GameOver)
+        {
+            displayedPoints= 0;
+            pointsLabel.text = displayedPoints.ToString();
+        }
     }
 
     void UpdatePoints()

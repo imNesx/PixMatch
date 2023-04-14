@@ -17,7 +17,7 @@ public class UIScreen : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        GameManager.Instance.onGameStateUpdated.AddListener(GameStateUpdated);
+        GameManager.Instance.OnGameStateUpdated.AddListener(GameStateUpdated);
         bool initialState = GameManager.Instance.gameState == visibleState;
         background.enabled = initialState;
         containerRect.gameObject.SetActive(initialState);
